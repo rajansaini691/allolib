@@ -24,6 +24,7 @@ option(USE_MPI "" ON)
   find_package(FreeImage QUIET)
   find_package(Assimp QUIET)
   find_package(Freetype QUIET)
+  find_package(MPI QUIET)
   
 if (AL_WINDOWS AND (NOT FREEIMAGE_FOUND))
 
@@ -51,6 +52,13 @@ if (AL_WINDOWS AND (NOT FREEIMAGE_FOUND))
 
 endif (AL_WINDOWS AND (NOT FREEIMAGE_FOUND))
 
+set(MPI_ASSUME_NO_BUILTIN_MPI ON)
+# /2809share/openmpi-3.1.1/local/lib/openmpi/lib/libmpi_cxx.so;
+
+set (MPI_INSTALL_PREFIX "${al_path}/../openmpi-3.1.1/local")
+set (MPI_CXX_LIBRARIES "${MPI_INSTALL_PREFIX}/lib/libmpi.so")
+set (MPI_CXX_ADDITIONAL_INCLUDE_DIRS "${MPI_INSTALL_PREFIX}/include")
+set (MPI_CXX_COMPILER "${MPI_INSTALL_PREFIX}/bin/mpicxx")
 find_package(MPI QUIET)
 
 # NOW ADD OPTIONAL FILES -------------------------------------------------------
@@ -93,9 +101,9 @@ if (FREETYPE_INCLUDE_DIRS)
 endif()
 
 if (USE_MPI AND MPI_CXX_FOUND)
-  message("Using MPI: compiler ${MPI_C_COMPILER} ${MPI_CXX_INCLUDE_PATH}")
+  message("Using MPICXX: compiler ${MPI_CXX_FOUND} ${MPI_CXX_COMPILER} ${MPI_CXX_LIBRARIES} .. ${MPI_CXX_INCLUDE_DIRS} .. ${MPIEXEC_EXECUTABLE}")
   set(MPI_DEFINITIONS "-DAL_BUILD_MPI")
-  list(APPEND ADDITIONAL_INCLUDE_DIRS ${MPI_CXX_INCLUDE_PATH})
+  list(APPEND ADDITIONAL_INCLUDE_DIRS ${MPI_CXX_INCLUDE_DIRS} ${MPI_CXX_ADDITIONAL_INCLUDE_DIRS})
   list(APPEND ADDITIONAL_LIBRARIES ${MPI_CXX_LIBRARIES})
   list(APPEND ADDITIONAL_DEFINITIONS ${MPI_DEFINITIONS})
   list(APPEND ADDITIONAL_COMPILE_FLAGS ${MPI_CXX_COMPILE_FLAGS})
