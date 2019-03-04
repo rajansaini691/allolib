@@ -118,7 +118,6 @@ TARGET_NAME=$(basename ${APP_FILE_INPUT} | sed 's/\.[^.]*$//')
 # echo "app name: ${APP_NAME}"
 
 (
-  cd ${APP_PATH}
   if [ ${DO_CLEAN} == 1 ]; then
     if [ ${IS_VERBOSE} == 1 ]; then
       echo "cleaning build"
@@ -133,9 +132,9 @@ TARGET_NAME=$(basename ${APP_FILE_INPUT} | sed 's/\.[^.]*$//')
   mkdir -p ${BUILD_TYPE}
   cd ${BUILD_TYPE}
 
-  echo cmake ${GENERATOR} ${WINDOWS_FLAGS} -Wno-deprecated -DBUILD_EXAMPLES=0 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DAL_APP_FILE=../../../${APP_FILE} -DAL_VERBOSE_OUTPUT=${VERBOSE_FLAG} ${VERBOSE_MAKEFILE} -DAL_APP_RUN=${RUN_APP} ${AL_LIB_PATH}/cmake/single_file
+  echo cmake ${GENERATOR} ${WINDOWS_FLAGS} -Wno-deprecated -DBUILD_EXAMPLES=0 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DAL_APP_FILE=../../${APP_PATH}/${APP_FILE} -DAL_VERBOSE_OUTPUT=${VERBOSE_FLAG} ${VERBOSE_MAKEFILE} -DAL_APP_RUN=${RUN_APP} ${AL_LIB_PATH}/cmake/single_file
 
-  cmake ${GENERATOR} ${WINDOWS_FLAGS} -Wno-deprecated -DBUILD_EXAMPLES=0 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DAL_APP_FILE=../../../${APP_FILE} -DAL_VERBOSE_OUTPUT=${VERBOSE_FLAG} ${VERBOSE_MAKEFILE} -DAL_APP_RUN=${RUN_APP} ${AL_LIB_PATH}/cmake/single_file > cmake_log.txt
+  cmake ${GENERATOR} ${WINDOWS_FLAGS} -Wno-deprecated -DBUILD_EXAMPLES=0 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DAL_APP_FILE=../../${APP_PATH}/${APP_FILE} -DAL_VERBOSE_OUTPUT=${VERBOSE_FLAG} ${VERBOSE_MAKEFILE} -DAL_APP_RUN=${RUN_APP} ${AL_LIB_PATH}/cmake/single_file > cmake_log.txt
 
 if [ ${RUN_APP} == 1 ]; then
   TARGET_NAME=${TARGET_NAME}_run  
