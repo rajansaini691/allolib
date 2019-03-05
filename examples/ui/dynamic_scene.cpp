@@ -46,11 +46,15 @@ struct SimpleVoice : PositionedVoice {
     mMesh.primitive(Mesh::LINE_STRIP);
 
     // register each parameter so setParamFields() works later..
-    registerParameterAsField(mFreq);  // XXX was *this << mFreq
+    registerParameterAsField(mFreq);
+    // *this << mFreq; // the line above replaces this statement
+    //
     // XXX don't use the stream operator for anything other than stream
-    // operations; << and >> are confusing and ugly. for streams << and >>
-    // supposedly have visual mnemonic value, but for callback registration i
-    // don't see any value. you just have to remember to use << or >>?
+    // operations; << and >> are confusing and ugly. for streams, << and >>
+    // supposedly have visual mnemonic value---i would argue they do not---,
+    // but for callback registration i don't see any value. what about
+    // these symbols says "callback registration" to the user? instead, use
+    // methods with names in user-facing code.
 
     // changes to mFreq will automatically set the frequency of mOsc
     mFreq.registerChangeCallback([this](float value) { mOsc.freq(value); });
