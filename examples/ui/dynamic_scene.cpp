@@ -22,8 +22,8 @@ using namespace al;
 // these keywords (and the concepts they imply) now is unnecessary and
 // confusing. the user (generally a novice creative coder) can always learn
 // about this stuff later, when they need it. it is unlikely that the design of
-// this kind of user code will benefit from the use of class(as opposed to
-// stuct).
+// this kind of user code will benefit from the use of class (as opposed to
+// struct).
 //
 struct SimpleVoice : PositionedVoice {
   // XXX put all member variables at the front of the class; the most important
@@ -31,8 +31,8 @@ struct SimpleVoice : PositionedVoice {
   // information is shown in two places: 1) the declaration of member variables
   // and 2) in the inheritance list where each parent is its own block of data
   // that precedes the data of this class in memory. putting member variable
-  // declarations immediately after the inheritance list allows use to see all
-  // the class data in one place, but it mirrors how the data is laid out in
+  // declarations immediately after the inheritance list allows us to see all
+  // the class data in one place. also, it mirrors how the data is laid out in
   // memory. the reasons for putting member declarations at the bottom of the
   // class do not apply to user-facing code.
   //
