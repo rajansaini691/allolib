@@ -3,12 +3,12 @@ cmake_minimum_required(VERSION 3.0)
 # This cmake file is for single cpp file projects that does not have
 # CMakeLists.txt file in the project folder.
 
-# user needs to pass definition `AL_APP_FILE` to this script
+# user needs to pass definition `AL_APP_ROOT` and `AL_APP_FILE` to this script
 
 # example:
 # at/proj/folder > mkdir build
 # at/proj/folder > cd build
-# at/proj/folder/build > cmake -DAL_APP_FILE=../my_app.cpp path/to/allolib/cmake/single_file
+# at/proj/folder/build > cmake -DAL_APP_ROOT=.. -DAL_APP_FILE=../my_app.cpp path/to/allolib/cmake/single_file
 # at/proj/folder/build > make
 # at/proj/folder/build > cd ../bin
 # at/proj/folder/build > ./my_app
@@ -26,7 +26,6 @@ if (IS_DIRECTORY AL_APP_FILE)
   message(FATAL_ERROR "\n[!] pass file to this cmake script\n")
 endif ()
 
-
 if (IS_ABSOLUTE ${AL_APP_FILE})
   get_filename_component(file_full_path ${AL_APP_FILE} ABSOLUTE)
 else ()
@@ -35,21 +34,35 @@ endif ()
 
 get_filename_component(app_name ${file_full_path} NAME_WE)
 get_filename_component(app_path ${file_full_path} DIRECTORY)
-set(app_files_list ${file_full_path})
-set(al_path ${CMAKE_CURRENT_SOURCE_DIR}/../../../allolib)
 
-if(EXISTS "${app_path}/flags.cmake")
-  if (AL_VERBOSE_OUTPUT)
-    message("found flags.cmake")
+set(app_files_list ${file_full_path})
+# get_filename_component(app_root ${CMAKE_CURRENT_SOURCE_DIR}/../../.. REALPATH)
+set(app_root ${AL_APP_ROOT})
+# set(al_path ${CMAKE_CURRENT_SOURCE_DIR}/../../../allolib)
+get_filename_component(al_path ${CMAKE_CURRENT_SOURCE_DIR}/../../../allolib REALPATH)
+
+# message(app_root "${app_root}")
+# message(al_path "${al_path}")
+
+if(EXISTS "${app_root}/app.cmake")
+  if(AL_VERBOSE_OUTPUT)
+    message("found app.cmake")
   endif()
-  include(${app_path}/flags.cmake)
+  include(${app_root}/app.cmake)
 endif()
+
+# if(EXISTS "${app_path}/flags.cmake")
+#   if (AL_VERBOSE_OUTPUT)
+#     message("found flags.cmake")
+#   endif()
+#   include(${app_path}/flags.cmake)
+# endif()
 
 # TODO find cuttlebone
 set(CUTTLEBONE_SRC_DIR "${CMAKE_CURRENT_LIST_DIR}/../../cuttlebone")
 if (EXISTS ${CUTTLEBONE_SRC_DIR})
     set(CUTTLE_BUILD_TESTS_AND_EXAMPLES OFF CACHE BOOL "Build Cuttlebone extras" FORCE)
-    add_subdirectory(${CUTTLEBONE_SRC_DIR} "${app_path}/build/cuttlebone")
+    add_subdirectory(${CUTTLEBONE_SRC_DIR} "${app_root}/build/cuttlebone")
     list(APPEND app_include_dirs ${CUTTLEBONE_SRC_DIR})
     list(APPEND app_link_libs cuttlebone)
     list(APPEND app_definitions -DAL_USE_CUTTLEBONE)
@@ -61,6 +74,7 @@ endif()
 if (AL_VERBOSE_OUTPUT)
 	message("binary dir: ${CMAKE_CURRENT_BINARY_DIR}")
 	message("file full path: ${file_full_path}")
+  message("app_root: ${app_root}")
 	message("app path: ${app_path}")
 	message("app name: ${app_name}")
 	message("al path: ${al_path}")
@@ -83,13 +97,15 @@ else()
 	endif()
 endif ()
 
+link_directories(/Users/cannedStar/code/NiTE-MacOSX-x64-2.2/Redist/)
+
 add_executable(${app_name} ${app_files_list})
 
 set_target_properties(${app_name} PROPERTIES
   DEBUG_POSTFIX d
-  RUNTIME_OUTPUT_DIRECTORY ${app_path}/bin
-  RUNTIME_OUTPUT_DIRECTORY_DEBUG ${app_path}/bin
-  RUNTIME_OUTPUT_DIRECTORY_RELEASE ${app_path}/bin
+  RUNTIME_OUTPUT_DIRECTORY ${app_root}/bin
+  RUNTIME_OUTPUT_DIRECTORY_DEBUG ${app_root}/bin
+  RUNTIME_OUTPUT_DIRECTORY_RELEASE ${app_root}/bin
   CXX_STANDARD 14
   CXX_STANDARD_REQUIRED ON
 )
@@ -108,9 +124,13 @@ foreach(include_dir IN LISTS app_include_dirs)
     if (IS_ABSOLUTE ${include_dir})
         target_include_directories(${app_name} PRIVATE ${include_dir})
     else()
-        target_include_directories(${app_name} PRIVATE ${app_path}/${include_dir})
+        target_include_directories(${app_name} PRIVATE ${app_root}/${include_dir})
     endif()
 endforeach(include_dir IN app_include_dirs)
+
+# message(app_name "${app_name}")
+# message(app_link_libs "${app_link_libs}")
+
 
 target_link_libraries(${app_name} ${app_link_libs})
 target_compile_definitions(${app_name} PRIVATE ${app_definitions})
@@ -128,20 +148,20 @@ endif()
 add_custom_target(${app_name}_run
     ./${app_name}
     DEPENDS ${app_name}
-    WORKING_DIRECTORY ${app_path}/bin
+    WORKING_DIRECTORY ${app_root}/bin
     USES_TERMINAL
     )
 add_custom_target(${app_name}_run_debug
     ${DEBUGGER} ./${app_name}d
     DEPENDS ${app_name}
-    WORKING_DIRECTORY ${app_path}/bin
+    WORKING_DIRECTORY ${app_root}/bin
     USES_TERMINAL
     )
 
 if (AL_WINDOWS)
   # when run from Visual Studio, working directory is where the solution is by default
   # set it to app output directory
-  set_target_properties(${app_name} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${app_path}/bin)
+  set_target_properties(${app_name} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${app_root}/bin)
   # startup project is `ALL_BUILD` by default so we change it to app project
   set_directory_properties(PROPERTIES VS_STARTUP_PROJECT ${app_name})
 
@@ -151,25 +171,25 @@ if (AL_WINDOWS)
       get_filename_component(SNDFILE_LIBRARY_NAME "${SNDFILE_LIBRARY}" NAME_WE)
       get_filename_component(SNDFILE_LIBRARY_DIR "${SNDFILE_LIBRARY}" DIRECTORY)
       list(APPEND post_build_command
-        robocopy "${SNDFILE_LIBRARY_DIR}/../bin" ${app_path}/bin ${SNDFILE_LIBRARY_NAME}.dll &
+        robocopy "${SNDFILE_LIBRARY_DIR}/../bin" ${app_root}/bin ${SNDFILE_LIBRARY_NAME}.dll &
       )
   endif(SNDFILE_LIBRARY)
 
   if (USE_PORTAUDIO)
     list(APPEND post_build_command
-      robocopy ${al_path}/dependencies/portaudio/ ${app_path}/bin portaudio_x64.dll &
+      robocopy ${al_path}/dependencies/portaudio/ ${app_root}/bin portaudio_x64.dll &
     )
   endif (USE_PORTAUDIO)
 
   if (USE_APR)
     list(APPEND post_build_command
-      robocopy ${al_path}/dependencies/apr/ ${app_path}/bin libapr-1.dll &
+      robocopy ${al_path}/dependencies/apr/ ${app_root}/bin libapr-1.dll &
     )
   endif (USE_APR)
 
   if (FREEIMAGE_FOUND)
     list(APPEND post_build_command
-      robocopy ${al_path}/dependencies/FreeImage/Dist/x64 ${app_path}/bin FreeImage.dll &
+      robocopy ${al_path}/dependencies/FreeImage/Dist/x64 ${app_root}/bin FreeImage.dll &
     )
   endif (FREEIMAGE_FOUND)
 
