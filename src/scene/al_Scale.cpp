@@ -2,7 +2,28 @@
 
 using namespace al;
 
-Scale(std::string sclPath, unsigned int pitchStandard = 440) {
-	this->pitchStandard = pitchStandard;
-	// TODO Read and parse the scala file
+Scale::Scale(std::string sclPath, unsigned int tonic = 440) {
+	this->tonic = tonic;
+
+	/* Parsing the scl file */
+	// TODO If the below code has become too large/messy to be readable, abstract
+	// into own function
+
+
+}
+
+Scale::Scale(unsigned int tonic = 440) {
+	this->tonic = tonic;
+}
+
+Scale::~Scale() {
+
+}
+
+bool Scale::freqFromMIDI(int midiNote) {
+	return false;
+}
+
+bool Scale::freqFromASCII(char* key) {
+
 }
