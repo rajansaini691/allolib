@@ -65,7 +65,14 @@ class Scale {
     */
    float tunings[108];
 
-}
+   /**
+    * @brief	Wrapper for C++ assert, using a more detailed message.
+    *
+    * @param assertion	Some boolean expression to be evaluated
+    */
+   void scalaAssert(bool assertion, std::string message) {
+   
+   }
 
 }
 
