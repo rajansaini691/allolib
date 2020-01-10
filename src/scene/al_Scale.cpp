@@ -10,39 +10,46 @@ Scale::Scale(std::string sclPath, unsigned int tonic = 440) {
 	// into own function
 
 	// Stores the user's description of the tuning system 
+	// (first line of the file)
 	std::string description;
 
 	// Stores the number of lines
-	int numLines = 0;
+	int numNotes = 0;
 
 	// Stores each note's distance from the tonic in cents
-	float* distances;
+	double* tunings;
 
 	std::ifstream sclfile("thefile.scl");
 	std::string line;
 	
-	// The number of non-commented lines seen
+	// Keeps track of non-commented lines seen while reading the file
 	int count = 0;
 	while (std::getline(sclfile, line)) {
 		// Comments start with !
 		if(line.size() == 0 || line[0] == '!') continue;
 
 		if(count == 0) {
+			// First line contains the scale description
 			description = line;
-			std::cout << "Description: " << description << std::endl;
+
 		} else if(count == 1) {
-			numLines = std::stoi(line);
-			std::cout << "The file uses " << numLines << " lines\n";
-			scalaAssert(
-				numLines < 0, 
-				"the number of input lines has been set to zero"
-			);
+			// Second line contains the number of notes in the scale
+			numNotes = std::stoi(line);
+
+			scalaAssert(numNotes < 0, "the number notes in the scale is being read as zero");
+
+			// Size of our tunings array depends on the number of
+			// notes in the scale
+			tunings = new double[numNotes];
+
 		} else {
-			
+			// The first two lines contain metadata
+			int index = count - 2;
+			tunings[index] = parseLine(line);
+			std::cout << parseLine(line) << std::endl;
 		}
 		count++;
 	}
-
 }
 
 Scale::Scale(unsigned int tonic = 440) {
@@ -61,7 +68,7 @@ bool Scale::freqFromASCII(char* key) {
 
 }
 
-void scalaAssert(bool assertion, std::string message) {
+void Scale::scalaAssert(bool assertion, std::string message) {
 	if(assertion) return;
 
 	std::string fullMessage =
@@ -74,4 +81,38 @@ void scalaAssert(bool assertion, std::string message) {
 		"https://github.com/AlloSphere-Research-Group/allolib\n";
 	
 	std::cerr << fullMessage << std::endl;
+}
+
+double Scale::parseLine(std::string line) {
+	// http://www.huygens-fokker.org/scala/scl_format.html
+	// contains the specification used for the parsing below
+
+	// Presence of a period implies the number is a already a cents value
+	if(line.find('.') != std::string::npos) {
+		return std::stof(line);
+	} 
+
+	// TODO Does the cent-conversion below harm accuracy?
+
+	double frac = 0;
+
+	int pos = line.find('/');
+	if(pos != std::string::npos) {
+		// Number is expressed as a fraction
+		uint32_t num = std::stoi(line.substr(0, pos));
+		uint32_t denom = std::stoi(line.substr(pos + 1));
+
+		scalaAssert(denom != 0, "we are seeing a divide-by-zero somewhere in your file");
+
+		frac = (double) num / denom;
+	} else {
+		// Number is an implicit fraction (denominator is 1)
+		frac = std::stof(line);
+	}
+
+	// Formula taken from http://www.sengpielaudio.com/calculator-centsratio.htm
+	double cents = 1200 * std::log2(frac);
+
+	return cents;
+
 }
