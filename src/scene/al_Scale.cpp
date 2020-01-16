@@ -1,4 +1,10 @@
-@include "al/scene/al_ScaleManager.hpp"
+#include "al/scene/al_ScaleManager.hpp"
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <fstream>
+#include <cassert>
+#include <cmath>
 
 using namespace al;
 
@@ -34,7 +40,6 @@ Scale::Scale(std::string sclPath, unsigned int tonic = 440) {
 
 		} else if(count == 1) {
 			// Second line contains the number of notes in the scale
-			numNotes = std::stoi(line);
 
 			scalaAssert(numNotes < 0, "the number notes in the scale is being read as zero");
 
@@ -66,6 +71,15 @@ bool Scale::freqFromMIDI(int midiNote) {
 
 bool Scale::freqFromASCII(char* key) {
 
+}
+
+
+/*
+ * @brief	Used internally
+ * @detailed	Computes a lookup table mapping MIDI notes to frequency values
+ */
+void Scale::computeTuning() {
+	
 }
 
 void Scale::scalaAssert(bool assertion, std::string message) {

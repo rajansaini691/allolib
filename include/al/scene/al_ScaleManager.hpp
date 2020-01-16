@@ -4,6 +4,8 @@
 #ifndef AL_SCALE
 #define AL_SCALE
 
+#include <string>
+
 namespace al {
 
 /**
@@ -61,19 +63,25 @@ class Scale {
 
    /**
     * Though MIDI notes will only generally range from 21 to 108, the LUT 
-    * (lookup table) is of size 108 rather than 87 for readability
+    * (lookup table) is of size 108 rather than 87 for readability.
     */
-   float tunings[108];
+   double midi_lookup[108];
 
    /**
     * @brief	Wrapper for C++ assert, using a more detailed message.
     *
     * @param assertion	Some boolean expression to be evaluated
     */
-   void scalaAssert(bool assertion, std::string message) {
-   
-   }
+   void scalaAssert(bool assertion, std::string message);
 
-}
+   /**
+    * @brief		Used internally while parsing the scala files
+    * @detailed		Converts a line of text within a scala file to its 
+    *			representation in cents
+    */
+   double parseLine(std::string line);
+
+
+};
 
 #endif
