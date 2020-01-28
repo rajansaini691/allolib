@@ -27,7 +27,7 @@ class Scale {
    * @param sclPath		Path to the scala file
    * @param tonic	Frequency value of tonic note in Hz 
    */
-  Scale(std::string sclPath, unsigned int tonic = 440);
+  Scale(std::string sclPath, unsigned int tonic = 440, unsigned int midi = 68);
 
   /**
    * @brief		Constructs a scale using equal temperament (the usual tuning system)
@@ -35,8 +35,9 @@ class Scale {
    *			use this constructor instead. 
    *
    * @param tonic	Frequency value of A in Hz
+   * @param midi	MIDI note of the given tonic
    */
-  Scale(unsigned int tonic = 440);
+  Scale(unsigned int tonic = 440, unsigned int midi = 68);
 
   /**
    * @brief		Provides a frequency for the given MIDI note value
@@ -62,6 +63,11 @@ class Scale {
    unsigned int tonic;
 
    /**
+    * MIDI note number of tonic
+    */
+   unsigned int tonic_midi;
+
+   /**
     * Though MIDI notes will only generally range from 21 to 108, the LUT 
     * (lookup table) is of size 108 rather than 87 for readability.
     */
@@ -74,6 +80,12 @@ class Scale {
     */
    void scalaAssert(bool assertion, std::string message);
 
+   /*
+    * @brief	Used internally
+    * @detailed	Computes a lookup table mapping MIDI notes to frequency values
+    */
+   void Scale::computeTuning(double* cents, int len);
+
    /**
     * @brief		Used internally while parsing the scala files
     * @detailed		Converts a line of text within a scala file to its 
@@ -83,5 +95,7 @@ class Scale {
 
 
 };
+
+}
 
 #endif

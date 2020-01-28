@@ -8,8 +8,9 @@
 
 using namespace al;
 
-Scale::Scale(std::string sclPath, unsigned int tonic = 440) {
+Scale::Scale(std::string sclPath, unsigned int tonic = 440, unsigned int midi = 68) {
 	this->tonic = tonic;
+	this->tonic_midi = tonic_midi;
 
 	/* Parsing the scl file */
 	// TODO If the below code has become too large/messy to be readable, abstract
@@ -23,7 +24,7 @@ Scale::Scale(std::string sclPath, unsigned int tonic = 440) {
 	int numNotes = 0;
 
 	// Stores each note's distance from the tonic in cents
-	double* tunings;
+	double* cents;
 
 	std::ifstream sclfile("thefile.scl");
 	std::string line;
@@ -45,12 +46,12 @@ Scale::Scale(std::string sclPath, unsigned int tonic = 440) {
 
 			// Size of our tunings array depends on the number of
 			// notes in the scale
-			tunings = new double[numNotes];
+			cents = new double[numNotes];
 
 		} else {
 			// The first two lines contain metadata
 			int index = count - 2;
-			tunings[index] = parseLine(line);
+			cents[index] = parseLine(line);
 			std::cout << parseLine(line) << std::endl;
 		}
 		count++;
@@ -59,6 +60,7 @@ Scale::Scale(std::string sclPath, unsigned int tonic = 440) {
 
 Scale::Scale(unsigned int tonic = 440) {
 	this->tonic = tonic;
+	this->tonic_midi = tonic_midi;
 }
 
 Scale::~Scale() {
@@ -70,16 +72,65 @@ bool Scale::freqFromMIDI(int midiNote) {
 }
 
 bool Scale::freqFromASCII(char* key) {
+	// TODO Implement
 
 }
 
+void Scale::computeTuning(double* cents, int len) {
+	// First, we must know the tonic. From there we work our way up and
+	// down. 
 
-/*
- * @brief	Used internally
- * @detailed	Computes a lookup table mapping MIDI notes to frequency values
- */
-void Scale::computeTuning() {
+	// Starts with the first MIDI note
+	int cur_midi = this->tonic_midi;
+
+	// Frequency value of given tonic
+	int cur_tonic = this->tonic;
+
+	// Number of notes above the root (used while iterating)
+	int scale_degree = 0;
 	
+	// Going up from tonic (108 is the highest MIDI number)
+	for(int i = this->tonic_midi; i < 108; i++) {
+		// Calculate frequency of i'th scale degree
+		double hz = cur_tonic * std::pow(2, cents[i] / 1200.0);
+		this->midi_lookup[i] = hz;
+
+		scale_degree++;
+
+		// When we reach the top end of our scale, raise the tonic to a
+		// new octave
+		// TODO check off by one errors (if notes are being skipped,
+		// debug this)
+		if(scale_degree > len) {
+			scale_degree = 0;
+			
+			// TODO If octave isn't being duplicated, debug this
+			cur_tonic *= cents[len - 1];
+		}
+	}
+
+	// Reset variables
+	int cur_midi = this->tonic_midi;
+	int cur_tonic = this->tonic;
+
+	// Start at the note below the octave, then go down to root
+	int scale_degree = len - 1;		
+
+	// Going down from tonic (to 21)
+	scalaAssert(this->tonic > 22, "the tonic's MIDI value must be at least 21");
+	for(int i = this->tonic_midi; i > 21; i--) {
+		// Calculate frequency
+		double hz = cur_tonic * std::pow(2, cents[scale_degree] / 1200.0);
+		this->midi_lookup[i] = hz;
+
+		scale_degree--;
+
+		// TODO Check off by one errors
+		if(scale_degree < 0) {
+			tonic *= 1.0 / cents[len - 1];
+			scale_degree = len - 1;
+		}
+	}
 }
 
 void Scale::scalaAssert(bool assertion, std::string message) {
