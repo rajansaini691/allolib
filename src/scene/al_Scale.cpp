@@ -80,6 +80,9 @@ Scale::~Scale() {
 
 double Scale::freqFromMIDI(unsigned int midiNote) {
 	scalaAssert(21 <= midiNote && midiNote <= 108, "the given MIDI note is out of range");
+  if(midiNote == 69) {
+    std::cout << "69!" << std::endl;
+  }
 	return midi_lookup[midiNote];
 }
 

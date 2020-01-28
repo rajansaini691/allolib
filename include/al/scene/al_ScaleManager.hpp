@@ -27,7 +27,7 @@ class Scale {
    * @param sclPath		Path to the scala file
    * @param tonic	Frequency value of tonic note in Hz 
    */
-  Scale(std::string sclPath, unsigned int tonic = 440, unsigned int midi = 68);
+  Scale(std::string sclPath, unsigned int tonic = 440, unsigned int midi = 69);
 
   /**
    * @brief		Constructs a scale using equal temperament (the usual tuning system)
@@ -37,7 +37,7 @@ class Scale {
    * @param tonic	Frequency value of A in Hz
    * @param midi	MIDI note of the given tonic
    */
-  Scale(unsigned int tonic = 440, unsigned int midi = 68);
+  Scale(unsigned int tonic = 440, unsigned int midi = 69);
 
   /**
    * @brief		Provides a frequency for the given MIDI note value
