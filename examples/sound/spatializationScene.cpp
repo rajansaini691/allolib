@@ -32,7 +32,7 @@ struct Source : public PositionedVoice {
   void onProcess(Graphics &g) override {
     // Draw the source
     g.pushMatrix();
-    g.polygonFill();
+    gl::polygonFill();
     g.scale(0.8f);
     g.color(0.4f, 0.4f, 0.4f, 0.5f);
     g.draw(mMarker);
@@ -146,8 +146,8 @@ struct MyApp : public App {
   void onDraw(Graphics &g) override {
     g.clear(0);
 
-    g.blendOn();
-    g.blendModeTrans();
+    gl::blending(true);
+    gl::blendTrans();
     // Draw the speakers
     for (int i = 0; i < (int)speakerLayout.size(); ++i) {
       g.pushMatrix();
@@ -157,7 +157,7 @@ struct MyApp : public App {
       float peak = mPeaks[i].load();
       g.scale(0.02 + fabs(peak) * 5);
       g.color(HSV(0.5 + (peak * 4)));
-      g.polygonLine();
+      gl::polygonLine();
       g.draw(mPoly);
       g.popMatrix();
     }

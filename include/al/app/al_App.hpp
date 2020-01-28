@@ -71,7 +71,7 @@ class App {
   virtual Pose &pose();
   virtual Lens &lens();
   virtual Nav &nav();
-  NavInputControl &navControl();
+  virtual NavInputControl &navControl();
   void fps(double f);
 
   // Access to default window domain
@@ -129,11 +129,11 @@ class App {
   void decorated(bool b);
 
   // Event handlers
-  [[deprecated("Call through graphicsDomain()")]] void append(
+  [[deprecated("Call through defaultWindow()")]] void append(
       WindowEventHandler &handler);
-  [[deprecated("Call through graphicsDomain()")]] void prepend(
+  [[deprecated("Call through defaultWindow()")]] void prepend(
       WindowEventHandler &handler);
-  [[deprecated("Call through graphicsDomain()")]] void remove(
+  [[deprecated("Call through defaultWindow()")]] void remove(
       WindowEventHandler &handler);
 
   // Access to audio domain

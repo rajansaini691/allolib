@@ -94,7 +94,6 @@ class GLFWOpenGLOmniRendererDomain : public SynchronousDomain {
   Viewpoint mView{mNav.transformed()};  // Pose with Lens and acts as camera
   NavInputControl mNavControl{mNav};    // interaction with keyboard and mouse
 };
-
 }  // namespace al
 
 #endif

@@ -167,7 +167,7 @@ void PresetHandler::storePreset(int index, std::string name, bool overwrite) {
   ParameterStates values;
   for (ParameterMeta *p : mParameters) {
     std::vector<ParameterField> fields;
-    p->get(fields);
+    p->getFields(fields);
     values[p->getFullAddress()] = fields;
   }
   for (auto bundleGroup : mBundles) {
@@ -177,7 +177,7 @@ void PresetHandler::storePreset(int index, std::string name, bool overwrite) {
       std::string bundlePrefix = bundleName + std::to_string(i);
       for (ParameterMeta *p : bundleGroup.second.at(i)->parameters()) {
         std::vector<ParameterField> fields;
-        p->get(fields);
+        p->getFields(fields);
         values[bundlePrefix + p->getFullAddress()] = fields;
       }
       // FIXME enable recursive nesting for bundles
@@ -298,7 +298,7 @@ void PresetHandler::morphTo(ParameterStates &parameterStates, float morphTime) {
     for (ParameterMeta *param : mParameters) {
       if (mTargetValues.find(param->getFullAddress()) != mTargetValues.end()) {
         std::vector<ParameterField> params;
-        param->get(params);
+        param->getFields(params);
         mStartValues[param->getFullAddress()] = params;
       }
     }
@@ -313,7 +313,7 @@ void PresetHandler::morphTo(ParameterStates &parameterStates, float morphTime) {
                   mTargetValues.end()) {
                 mStartValues[bundlePrefix + param->getFullAddress()] =
                     std::vector<ParameterField>();
-                param->get(
+                param->getFields(
                     mStartValues[bundlePrefix + param->getFullAddress()]);
               }
             }
@@ -370,7 +370,7 @@ void PresetHandler::recallPresetSynchronous(std::string name) {
   // FIXME recall bundles
   for (ParameterMeta *param : mParameters) {
     if (mTargetValues.find(param->getFullAddress()) != mTargetValues.end()) {
-      param->set(mTargetValues[param->getFullAddress()]);
+      param->setFields(mTargetValues[param->getFullAddress()]);
     }
   }
   int index = -1;
@@ -919,7 +919,21 @@ void PresetHandler::setInterpolatedValues(ParameterStates &startValues,
         assert(startValue.second.size() == endValue.second.size());
         if (factor != 1.0) {
           for (size_t i = 0; i < endValue.second.size(); i++) {
-            assert(startValue.second[i].type() == endValue.second[i].type());
+            if (startValue.second[i].type() != endValue.second[i].type()) {
+              if (startValue.second[i].type() == ParameterField::FLOAT &&
+                  endValue.second[i].type() == ParameterField::INT32) {
+                endValue.second[i] =
+                    ParameterField(float(endValue.second[i].get<int32_t>()));
+              } else if (endValue.second[i].type() == ParameterField::FLOAT &&
+                         startValue.second[i].type() == ParameterField::INT32) {
+                startValue.second[i] =
+                    ParameterField(float(startValue.second[i].get<int32_t>()));
+              } else {
+                std::cerr << "Parameter data type mismatch. Aborting."
+                          << std::endl;
+                return;
+              }
+            }
             if (startValue.second[i].type() == ParameterField::FLOAT) {
               interpValues.push_back(ParameterField(
                   startValue.second[i].get<float>() +
@@ -936,13 +950,25 @@ void PresetHandler::setInterpolatedValues(ParameterStates &startValues,
             }
           }
         } else {
+          assert(startValue.second.size() == endValue.second.size());
+          for (size_t i = 0; i < endValue.second.size(); i++) {
+            if (startValue.second[i].type() == ParameterField::FLOAT &&
+                endValue.second[i].type() == ParameterField::INT32) {
+              endValue.second[i] =
+                  ParameterField(float(endValue.second[i].get<int32_t>()));
+            } else if (endValue.second[i].type() == ParameterField::FLOAT &&
+                       startValue.second[i].type() == ParameterField::INT32) {
+              endValue.second[i] =
+                  ParameterField(int32_t(endValue.second[i].get<float>()));
+            }
+          }
           interpValues = endValue.second;
         }
 
         for (auto *param : mParameters) {
           if (param->getFullAddress() == startValue.first &&
               interpValues.size() > 0) {
-            param->set(interpValues);
+            param->setFields(interpValues);
             break;
           }
         }
@@ -956,7 +982,7 @@ void PresetHandler::setInterpolatedValues(ParameterStates &startValues,
                   if (bundlePrefix + param->getFullAddress() ==
                           startValue.first &&
                       interpValues.size() > 0) {
-                    param->set(interpValues);
+                    param->setFields(interpValues);
                     break;
                   }
                 }
@@ -1010,6 +1036,9 @@ void PresetHandler::stepMorphing() {
   uint64_t stepCount = mMorphStepCount.fetch_add(1);
   if (stepCount <= totalSteps && totalSteps > 0) {
     double morphPhase = double(stepCount) / totalSteps;
+    if (totalSteps == 1) {
+      morphPhase = 1.0;
+    }
     setInterpolatedValues(mStartValues, mTargetValues, morphPhase);
   }
 }
@@ -1027,7 +1056,7 @@ PresetHandler::ParameterStates PresetHandler::getBundleStates(
   std::string bundlePrefix = bundle->name() + "/" + id;
   for (ParameterMeta *p : bundle->parameters()) {
     values[bundlePrefix + p->getFullAddress()] = std::vector<ParameterField>();
-    p->get(values[bundlePrefix + p->getFullAddress()]);
+    p->getFields(values[bundlePrefix + p->getFullAddress()]);
   }
   for (auto b : bundle->bundles()) {
     for (auto *bundle : b.second) {
