@@ -53,7 +53,6 @@ Scale::Scale(std::string sclPath, unsigned int tonic, unsigned int midi) {
 			// The first two lines contain metadata
 			int index = count - 2;
 			cents[index] = parseLine(line);
-			std::cout << parseLine(line) << std::endl;
 		}
 		count++;
 	}
@@ -67,11 +66,12 @@ Scale::Scale(std::string sclPath, unsigned int tonic, unsigned int midi) {
 
 Scale::Scale(unsigned int tonic, unsigned int midi) {
 	this->tonic = tonic;
-	this->tonic_midi = tonic_midi;
+	this->tonic_midi = midi;
 
 	// Computes tunings using hardcoded equally-tempered scale
 	double cents[] = {100.0, 200.0, 300.0, 400.0, 500.0, 600.0, 700.0, 800.0, 900.0, 100.00, 1100.0, 1200.0};
 	this->computeTuning(cents, 12);
+  
 }
 
 Scale::~Scale() {
@@ -136,10 +136,7 @@ void Scale::computeTuning(double* cents, int len) {
 		}
 	}
 
-  // TODO Delete after
-  for(int i = 0; i < 100; i++) {
-    std::cout << this->midi_lookup[i] << std::endl;
-  }
+  
 
 }
 
