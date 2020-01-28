@@ -8,7 +8,7 @@
 
 using namespace al;
 
-Scale::Scale(std::string sclPath, unsigned int tonic = 440, unsigned int midi = 68) {
+Scale::Scale(std::string sclPath, unsigned int tonic, unsigned int midi) {
 	this->tonic = tonic;
 	this->tonic_midi = tonic_midi;
 
@@ -24,7 +24,7 @@ Scale::Scale(std::string sclPath, unsigned int tonic = 440, unsigned int midi = 
 	int numNotes = 0;
 
 	// Stores each note's distance from the tonic in cents
-	double* cents;
+	double* cents = NULL;
 
 	std::ifstream sclfile("thefile.scl");
 	std::string line;
@@ -41,8 +41,9 @@ Scale::Scale(std::string sclPath, unsigned int tonic = 440, unsigned int midi = 
 
 		} else if(count == 1) {
 			// Second line contains the number of notes in the scale
-
-			scalaAssert(numNotes < 0, "the number notes in the scale is being read as zero");
+      
+		  numNotes = std::stoi(line);
+			scalaAssert(numNotes > 0, "the number notes in the scale is being read as zero");
 
 			// Size of our tunings array depends on the number of
 			// notes in the scale
@@ -58,19 +59,19 @@ Scale::Scale(std::string sclPath, unsigned int tonic = 440, unsigned int midi = 
 	}
 
 	// Using the newly-gathered cents data, generate tunings LUT
-	computeTuning(cents);
+	this->computeTuning(cents, count);
 
 	// Free heap
 	delete[] cents;
 }
 
-Scale::Scale(unsigned int tonic = 440) {
+Scale::Scale(unsigned int tonic, unsigned int midi) {
 	this->tonic = tonic;
 	this->tonic_midi = tonic_midi;
 
 	// Computes tunings using hardcoded equally-tempered scale
-	double cents[12] = {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200};
-	computeTuning(cents, len);
+	double cents[] = {100.0, 200.0, 300.0, 400.0, 500.0, 600.0, 700.0, 800.0, 900.0, 100.00, 1100.0, 1200.0};
+	this->computeTuning(cents, 12);
 }
 
 Scale::~Scale() {
@@ -84,15 +85,12 @@ double Scale::freqFromMIDI(unsigned int midiNote) {
 
 bool Scale::freqFromASCII(char* key) {
 	// TODO Implement
-
+  return false;
 }
 
 void Scale::computeTuning(double* cents, int len) {
 	// First, we must know the tonic. From there we work our way up and
 	// down. 
-
-	// Starts with the first MIDI note
-	int cur_midi = this->tonic_midi;
 
 	// Frequency value of given tonic
 	int cur_tonic = this->tonic;
@@ -103,32 +101,28 @@ void Scale::computeTuning(double* cents, int len) {
 	// Going up from tonic (108 is the highest MIDI number)
 	for(int i = this->tonic_midi; i < 108; i++) {
 		// Calculate frequency of i'th scale degree
-		double hz = cur_tonic * std::pow(2, cents[i] / 1200.0);
+		double hz = cur_tonic * std::pow(2, cents[scale_degree] / 1200.0);
 		this->midi_lookup[i] = hz;
 
 		scale_degree++;
 
 		// When we reach the top end of our scale, raise the tonic to a
 		// new octave
-		// TODO check off by one errors (if notes are being skipped,
-		// debug this)
-		if(scale_degree > len) {
+		if(scale_degree >= len) {
 			scale_degree = 0;
 			
-			// TODO If octave isn't being duplicated, debug this
-			cur_tonic *= cents[len - 1];
+			cur_tonic *= std::pow(2, cents[len - 1] / 1200.0);
 		}
 	}
 
 	// Reset variables
-	int cur_midi = this->tonic_midi;
-	int cur_tonic = this->tonic;
+	// Start the tonic down an octave
+	cur_tonic = this->tonic / std::pow(2, cents[len - 1] / 1200.0);
 
 	// Start at the note below the octave, then go down to root
-	int scale_degree = len - 1;		
+	scale_degree = len - 1;		
 
 	// Going down from tonic (to 21)
-	scalaAssert(this->tonic > 22, "the tonic's MIDI value must be at least 21");
 	for(int i = this->tonic_midi; i > 21; i--) {
 		// Calculate frequency
 		double hz = cur_tonic * std::pow(2, cents[scale_degree] / 1200.0);
@@ -136,12 +130,17 @@ void Scale::computeTuning(double* cents, int len) {
 
 		scale_degree--;
 
-		// TODO Check off by one errors
 		if(scale_degree < 0) {
-			tonic *= 1.0 / cents[len - 1];
+			cur_tonic *= 1 / std::pow(2, cents[len - 1] / 1200.0);
 			scale_degree = len - 1;
 		}
 	}
+
+  // TODO Delete after
+  for(int i = 0; i < 100; i++) {
+    std::cout << this->midi_lookup[i] << std::endl;
+  }
+
 }
 
 void Scale::scalaAssert(bool assertion, std::string message) {
@@ -149,7 +148,7 @@ void Scale::scalaAssert(bool assertion, std::string message) {
 
 	std::string fullMessage =
 		"\n"
-		"Unfortunately, we were unable to parse your scala file because "
+		"Unfortunately, we are unable to continue because "
 		+ message + "\n\n"
 		"Check http://www.huygens-fokker.org/scala/scl_format.html "
 		"to make sure your file was formatted correctly.\n"
@@ -172,7 +171,7 @@ double Scale::parseLine(std::string line) {
 
 	double frac = 0;
 
-	int pos = line.find('/');
+	unsigned int pos = line.find('/');
 	if(pos != std::string::npos) {
 		// Number is expressed as a fraction
 		uint32_t num = std::stoi(line.substr(0, pos));

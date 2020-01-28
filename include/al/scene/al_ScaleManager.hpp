@@ -71,7 +71,7 @@ class Scale {
     * Though MIDI notes will only generally range from 21 to 108, the LUT 
     * (lookup table) is of size 108 rather than 87 for readability.
     */
-   double midi_lookup[108];
+   double midi_lookup[108] = {0};
 
    /**
     * @brief	Wrapper for C++ assert, using a more detailed message.
@@ -84,7 +84,7 @@ class Scale {
     * @brief	Used internally
     * @detailed	Computes a lookup table mapping MIDI notes to frequency values
     */
-   void Scale::computeTuning(double* cents, int len);
+   void computeTuning(double* cents, int len);
 
    /**
     * @brief		Used internally while parsing the scala files
