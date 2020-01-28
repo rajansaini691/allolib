@@ -45,7 +45,7 @@ class Scale {
    * @param midiNote	An integer corresponding to a note on a piano keyboard
 			(See https://newt.phys.unsw.edu.au/jw/notes.html)
    */
-  bool freqFromMIDI(int midiNote);
+  double freqFromMIDI(unsigned int midiNote);
 
   /**
    * @brief		Maps a note on a computer keyboard to a frequency value
