@@ -56,19 +56,30 @@ Scale::Scale(std::string sclPath, unsigned int tonic = 440, unsigned int midi = 
 		}
 		count++;
 	}
+
+	// Using the newly-gathered cents data, generate tunings LUT
+	computeTuning(cents);
+
+	// Free heap
+	delete[] cents;
 }
 
 Scale::Scale(unsigned int tonic = 440) {
 	this->tonic = tonic;
 	this->tonic_midi = tonic_midi;
+
+	// Computes tunings using hardcoded equally-tempered scale
+	double cents[12] = {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200};
+	computeTuning(cents, len);
 }
 
 Scale::~Scale() {
 
 }
 
-bool Scale::freqFromMIDI(int midiNote) {
-	return false;
+double Scale::freqFromMIDI(unsigned int midiNote) {
+	scalaAssert(21 <= midiNote && midiNote <= 108, "the given MIDI note is out of range");
+	return midi_lookup[midiNote];
 }
 
 bool Scale::freqFromASCII(char* key) {
