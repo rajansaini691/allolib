@@ -69,7 +69,7 @@ Scale::Scale(unsigned int tonic, unsigned int midi) {
 	this->tonic_midi = midi;
 
 	// Computes tunings using hardcoded equally-tempered scale
-	double cents[] = {100.0, 200.0, 300.0, 400.0, 500.0, 600.0, 700.0, 800.0, 900.0, 100.00, 1100.0, 1200.0};
+	double cents[] = {100.0, 200.0, 300.0, 400.0, 500.0, 600.0, 700.0, 800.0, 900.0, 1000.00, 1100.0, 1200.0};
 	this->computeTuning(cents, 12);
   
 }
@@ -102,7 +102,7 @@ void Scale::computeTuning(double* cents, int len) {
 	int scale_degree = 0;
 	
 	// Going up from tonic (108 is the highest MIDI number)
-	for(int i = this->tonic_midi; i < 108; i++) {
+	for(int i = this->tonic_midi + 1; i < 108; i++) {
 		// Calculate frequency of i'th scale degree
 		double hz = cur_tonic * std::pow(2, cents[scale_degree] / 1200.0);
 		this->midi_lookup[i] = hz;
@@ -138,8 +138,6 @@ void Scale::computeTuning(double* cents, int len) {
 			scale_degree = len - 1;
 		}
 	}
-
-  
 
 }
 
