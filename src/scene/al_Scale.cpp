@@ -8,11 +8,13 @@
 
 using namespace al;
 
-Scale::Scale(std::string sclPath, unsigned int tonic, unsigned int midi) {
+Scale::Scale(std::ifstream & sclfile, unsigned int tonic, unsigned int midi) {
 	this->tonic = tonic;
 	this->tonic_midi = tonic_midi;
 
 	/* Parsing the scl file */
+  scalaAssert(sclfile.is_open(), "your scl file has not been opened");
+
 	// TODO If the below code has become too large/messy to be readable, abstract
 	// into own function
 
@@ -25,9 +27,6 @@ Scale::Scale(std::string sclPath, unsigned int tonic, unsigned int midi) {
 
 	// Stores each note's distance from the tonic in cents
 	double* cents = NULL;
-
-	std::ifstream sclfile(sclPath);
-  scalaAssert(sclfile.is_open(), "we could not load your scl file at the given path");
 
 	std::string line;
 	
@@ -81,10 +80,7 @@ Scale::~Scale() {
 }
 
 double Scale::freqFromMIDI(unsigned int midiNote) {
-	scalaAssert(21 <= midiNote && midiNote <= 108, "the given MIDI note is out of range");
-  if(midiNote == 69) {
-    std::cout << "69!" << std::endl;
-  }
+	scalaAssert(0 <= midiNote && midiNote <= 108, "the given MIDI note is out of range");
 	return midi_lookup[midiNote];
 }
 

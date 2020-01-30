@@ -1,5 +1,5 @@
-// TODO Should be a separate file or part of PolySynth?
 // TODO Conventions?
+// FIXME Paths of input files are currently resolved relative to the compiled binary
 
 #ifndef AL_SCALE
 #define AL_SCALE
@@ -20,14 +20,16 @@ class Scale {
   /**
    * @brief		Constructor using scala files (use for custom tunings)
    * @detailed		Creates a custom-tuned scale based on the given .scl
-   *			file and a given fundamental frequency
-   *			For example, to use Just Intonation based on A440, 
-   *			set the pitch standard to 440 Hz
+   *			        file and a given fundamental frequency
+   *			        For example, to use Just Intonation based on A440, 
+   *			        set the pitch standard to 440 Hz
    *
-   * @param sclPath		Path to the scala file
+   * @param sclfile   References the scala file (uses an already-initialized
+   *                  ifstream object to ensure file exists). For now, use paths
+   *                  relative to the executable.
    * @param tonic	Frequency value of tonic note in Hz 
    */
-  Scale(std::string sclPath, unsigned int tonic = 440, unsigned int midi = 69);
+  Scale(std::ifstream & sclfile, unsigned int tonic = 440, unsigned int midi = 69);
 
   /**
    * @brief		Constructs a scale using equal temperament (the usual tuning system)
