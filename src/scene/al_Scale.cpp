@@ -26,7 +26,9 @@ Scale::Scale(std::string sclPath, unsigned int tonic, unsigned int midi) {
 	// Stores each note's distance from the tonic in cents
 	double* cents = NULL;
 
-	std::ifstream sclfile("thefile.scl");
+	std::ifstream sclfile(sclPath);
+  scalaAssert(sclfile.is_open(), "we could not load your scl file at the given path");
+
 	std::string line;
 	
 	// Keeps track of non-commented lines seen while reading the file
@@ -57,7 +59,7 @@ Scale::Scale(std::string sclPath, unsigned int tonic, unsigned int midi) {
 		count++;
 	}
 
-	// Using the newly-gathered cents data, generate tunings LUT
+	/* Using the newly-gathered cents data, generate tunings LUT */
 	this->computeTuning(cents, count);
 
 	// Free heap
@@ -154,6 +156,8 @@ void Scale::scalaAssert(bool assertion, std::string message) {
 		"https://github.com/AlloSphere-Research-Group/allolib\n";
 	
 	std::cerr << fullMessage << std::endl;
+
+  exit(1);
 }
 
 double Scale::parseLine(std::string line) {
